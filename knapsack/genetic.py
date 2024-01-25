@@ -1,6 +1,7 @@
 import random
 import timeit
 from knapsack.instance import StateG
+from knapsack.random_num import random_num
 from utils.message import MessageUtilities
 
 class GeneticSolver:
@@ -13,7 +14,9 @@ class GeneticSolver:
         self.elitism_count = elitism_count
         self.population = [StateG(knapsack_instance) for _ in range(population_size)]
         self.population_fitness = [0.0] * population_size
-        self.rng = random.Random() #self.rng = random.Random(knapsack_instance.SEED)
+        rng_instance = random_num(seed=knapsack_instance.SEED)
+        self.rng_instance = rng_instance
+        #self.rng = random.Random() #self.rng = random.Random(knapsack_instance.SEED)
         self.best_state = None
         
         self.report_string = ""
@@ -43,7 +46,7 @@ class GeneticSolver:
         # Seleccionar sobrevivientes usando la aptitud acumulativa
         new_population = list(self.population)
         for i in range(self.population_size):
-            probability = self.rng.random()
+            probability = self.rng_instance.get_random_probability()
             for j in range(self.population_size):
                 if probability < cumulative_fitness[j]:
                     new_population[i] = self.population[j]
@@ -56,12 +59,12 @@ class GeneticSolver:
         first = 0
         father_index = 0
         for i in range(self.population_size):
-            probability = self.rng.random()
+            probability = self.rng_instance.get_random_probability()
             if probability < self.crossover_probability:
                 first += 1
                 if first % 2 == 0:
                     # Seleccionar punto de cruce
-                    split_point = self.rng.randint(0, self.knapsack_instance.NUMBER_OF_ITEMS - 1)
+                    split_point = self.rng_instance.get_random_number(self.knapsack_instance.NUMBER_OF_ITEMS - 1)
     
                     # Realizar cruce
                     child1 = self.population[father_index].state[:split_point] + self.population[i].state[split_point:]
@@ -136,7 +139,7 @@ class GeneticSolver:
         for i in range(self.population_size):
             mutated = False  # Variable para rastrear si se aplicó la mutación
             for j in range(self.knapsack_instance.NUMBER_OF_ITEMS):
-                probability = self.rng.random()
+                probability = self.rng_instance.get_random_probability()
                 if probability < self.mutation_probability:
                     # Utiliza una mutación más agresiva
                     if probability < 0.5:
